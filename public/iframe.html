@@ -1,0 +1,54 @@
+<form action="/fake-salesforce-server" method="post">
+  <input id="returnUrl" hidden type="text" name="returnUrl" value="???" />
+  <input type="text" name="someField1" value="test" />
+  <input id="submit" type="submit" />
+</form>
+
+<script>
+  console.log("IFRAME: started");
+
+  const allowedDomains = ["http://localhost:3000/"];
+
+  // get iframe URL for redirection
+  let url = document.URL;
+
+  // to check if redirected back from salesforce
+  const successQuery = "?showSuccess=true";
+
+  if (url.includes(successQuery)) {
+    // remove success from query
+    url.replace(successQuery, "");
+
+    sendMessageToParent("createSalesforceTicketSuccess");
+  }
+
+  document.querySelector("#returnUrl").value = document.URL + successQuery;
+  document.querySelector("#submit").addEventListener("click", () => {
+    sendMessageToParent("showLoading");
+  });
+
+  window.addEventListener("message", (event) => {
+    if (!event?.data || typeof event.data !== "string") {
+      return;
+    }
+
+    const messageData = JSON.parse(event.data);
+
+    switch (messageData?.messageType) {
+      case "setConfig":
+        console.log("IFRAME: config received", messageData);
+        break;
+
+      default:
+        console.error(
+          "IFRAME: unsupported message type: " + messageData?.messageType
+        );
+    }
+  });
+
+  function sendMessageToParent(messageType, data = {}) {
+    allowedDomains.forEach((domain) => {
+      window.parent.postMessage(JSON.stringify({ messageType, ...data }), "*");
+    });
+  }
+</script>

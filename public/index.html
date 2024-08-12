@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <iframe
+      id="sfIFrame"
+      src="iframe.html"
+      frameborder="0"
+      style="width: 500px; height: 500px"
+    ></iframe>
+  </body>
+</html>
+
+<script>
+  const salesforceIFrame = document.getElementById("sfIFrame");
+
+  // listen for message from iframe
+  window.addEventListener("message", (event) => {
+    // some browser extensions may also send messages so they need to be filtered out.
+    if (!event?.data || typeof event.data !== "string") {
+      return;
+    }
+
+    const data = JSON.parse(event.data);
+
+    switch (data?.messageType) {
+      case "createSalesforceTicketSuccess":
+        console.log(
+          "PARENT: Stop loading, close modal and show success message"
+        );
+
+        break;
+
+      case "showLoading":
+        console.log("PARENT: Show loading");
+        break;
+
+      default:
+        console.error("PARENT: unsupported message type: " + data?.messageType);
+    }
+  });
+
+  salesforceIFrame.addEventListener("load", () => {
+    console.log("PARENT: iframe content loaded");
+
+    // provide config to iframe
+    salesforceIFrame.contentWindow.postMessage(
+      JSON.stringify({
+        messageType: "setConfig",
+        value1: "test1",
+        value2: 2,
+        nestedObject: {
+          value3: "nested3",
+          value4: 3,
+        },
+      }),
+      // TODO: if data is sensitive, we need to provide a correct domain of the IFrame
+      "*"
+    );
+  });
+</script>
