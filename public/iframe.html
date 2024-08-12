@@ -1,6 +1,7 @@
 <form action="/fake-salesforce-server" method="post">
   <input id="returnUrl" hidden type="text" name="returnUrl" value="???" />
   <input type="text" name="someField1" value="test" />
+  <input type="text" name="configurable1" value="" />
   <input id="submit" type="submit" />
 </form>
 
@@ -37,6 +38,10 @@
     switch (messageData?.messageType) {
       case "setConfig":
         console.log("IFRAME: config received", messageData);
+
+        document.querySelector('[name="configurable1"]').value =
+          messageData?.nestedObject?.value3;
+
         break;
 
       default:
